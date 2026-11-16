@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Consulta de notas</title>
+<style>
+  :root { --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; --accent:#1d4ed8; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:16px; font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; color:var(--ink); background:transparent; }
+  .wrap { max-width:720px; margin:0 auto; }
+  h1 { font-size:1.15rem; margin:0 0 4px; }
+  .sub { color:var(--muted); margin:0 0 14px; font-size:.9rem; }
+  form { display:flex; gap:8px; flex-wrap:wrap; }
+  input { flex:1 1 200px; padding:10px 12px; font-size:1rem; border:1px solid #cbd5e1; border-radius:8px; text-transform:uppercase; }
+  input:focus { outline:2px solid var(--accent); outline-offset:1px; }
+  button { padding:10px 18px; font-size:1rem; border:0; border-radius:8px; background:var(--accent); color:#fff; cursor:pointer; }
+  button:disabled { opacity:.6; cursor:wait; }
+  #msg { margin-top:12px; color:#b91c1c; min-height:1.2em; }
+  #out { margin-top:8px; }
+  .name { font-weight:700; font-size:1.05rem; margin:8px 0 10px; }
+  .hero { margin-top:14px; border-radius:12px; padding:16px 18px; text-align:center; border:1px solid rgba(0,0,0,.08); }
+  .hero .big { font-size:1.9rem; font-weight:800; letter-spacing:.2px; }
+  .hero .cap { font-size:.85rem; margin-top:2px; color:#374151; }
+  .bar { height:8px; background:var(--line); border-radius:99px; margin:14px 0 4px; overflow:hidden; }
+  .bar i { display:block; height:100%; background:var(--accent); }
+  .barcap { font-size:.8rem; color:var(--muted); }
+  table { width:100%; border-collapse:collapse; margin-top:14px; font-size:.92rem; }
+  th, td { padding:8px 10px; text-align:left; border-bottom:1px solid var(--line); }
+  th { font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); }
+  td.n, th.n { text-align:right; white-space:nowrap; }
+  tr.grp td { background:#f3f4f6; font-weight:600; font-size:.8rem; color:#374151; }
+  tr.pend td { color:#9ca3af; }
+  .det { display:block; color:var(--muted); font-size:.8rem; }
+  .chip { display:inline-block; min-width:64px; text-align:center; padding:2px 8px; border-radius:6px; font-weight:600; }
+  .foot { margin-top:14px; font-size:.78rem; color:var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 id="title"></h1>
+  <p class="sub">Ingrese su carné institucional para ver su desglose.</p>
+  <form id="f" autocomplete="off">
+    <input id="carne" placeholder="Carné (ej. C1A234)" maxlength="20" required aria-label="Carné">
+    <button id="go" type="submit">Consultar</button>
+  </form>
+  <div id="msg" role="alert"></div>
+  <div id="out"></div>
+</div>
+
+<script>
+const DATA = {"title": "Consulta de notas · LM-0361 · Grupo 03", "salt": "/dfmDdW2B1hZwpVQq/rP9g==", "iters": 200000, "updated": "16/11/2026", "components": [{"id": "rtp", "label": "Asignaciones (RTP Total)", "max": 25.0, "group": "Asignaciones", "evaluated": true}, {"id": "ic1", "label": "In-Class #1", "max": 15.0, "group": "In-Class", "evaluated": true}, {"id": "ic2", "label": "In-Class #2", "max": 15.0, "group": "In-Class", "evaluated": false}, {"id": "ooc", "label": "Out of Class", "max": 20.0, "group": "Out of Class", "evaluated": false}, {"id": "p1", "label": "Parte 1", "max": 5.0, "group": "Proyecto", "evaluated": true}, {"id": "p2", "label": "Parte 2", "max": 5.0, "group": "Proyecto", "evaluated": false}, {"id": "p3", "label": "Parte 3", "max": 10.0, "group": "Proyecto", "evaluated": false}, {"id": "p4", "label": "Parte 4", "max": 5.0, "group": "Proyecto", "evaluated": false}], "scale": {"min": -19.075, "mid": -15.170833333333334, "max": -12.450000000000003}, "students": [{"id": "34c43bb8d8bf2b530951024ec12da0e5", "iv": "56NFDdauTJ8HqI9A", "ct": "9BlK4io/wC4sCeUwaQmrUL/14csEOxBQXh4AVICes9+tmbAYdnXWBKZ21isfiorzKanycBc3W09Q74lhRcs79vQhZHSBxhm0yRP8qDJbxZ6o/zhUxCdeMRrVbcE/4Cvuu5NJW/EvnLwIEbsH1fLsXvxUWbqpiCpU2+kdf5DZ"}, {"id": "cbc44b8b9bec3daca8414fa43a8e64f0", "iv": "UZ14/oDoltmLvsMf", "ct": "mVMaAU78ZUyD5FkLuDHOblQH2dHsKHBf1MT9AOUf6SKNYq5c3sg5VbczrlA+qGWopFDwGmlCgxmPt7wcDHq4If1aFP1vhAiNMCfnjbfzHJJyrnyaXJTGT2RL0ze7eY1hr762l2ciwF12VEt8Lkjl7QvmUE/4gWT7VHPojfTr6c+qSNyylqUZWyqskVYCu4EnzlgaMR+p+sU="}, {"id": "5df6ed2a901117961c36f62dc95d7548", "iv": "QxzPHcAKkvl4zZiT", "ct": "7CfzMfXUilDFdGbnQHptSIr51pMy0x7uUPY+tCNf7UBLVajkTIflen3WaMvTOTiknWoAL6d6bl7cPwIqWTP6h7MjaW5C8XljaO0m5IXEr8YCVlAU4fU88ZT6r8XDJ7pS8ywD8VubSgp0JoFG2j3KBwOOZ9W08P1leO9hes4fAq+6LzTKtr4dpJ1vyMngjBJjLduldcvkg7XP"}, {"id": "be9f5a6c8169a794ac1b4fe0478a9529", "iv": "AdzerR1DUONl5A5T", "ct": "YyVfXjRyCyeWWXDFMb4GkYwuVumwY8ybVsiU/XWEWEnV4MP2pAhDYu3P/IYzgmGIIshiw13QonWmKHEPRfrLZPOi1CxFXiMZSI5Qlx85LG3XzsDeooVPeL+LqC2X/zQoUyaGHPTpYSny9cEAYoBB1WG7TM9NfWI52iJLMomY8wxvCpOuFfyPojZDAuSMt47BMGUozTVqGI6f"}, {"id": "6258d651742a2efb7bb1cc18fec41460", "iv": "BJJLDwUZcQXQZHKF", "ct": "zSeFXmBY/4Xf1HihOAJSWt2oLYRbirbXB8CrGgrKepbLa/PzUmiaLWth2uarES5ii0T1e3m3X9S2L0PEwQYa0Uhv/OnH9C0ErOj6/1banhelbYgRwIOCdhVQ1PFRLaoe7Zja9MipI9VnfZfBdkgtLbXMYmvPDnfiCMk0WwFfUoCrW5WMiP5v7ISCQmZ/qPVjcH7Oq8tvxmTY"}, {"id": "22dd4f765ea7aede63b76a4f72756d43", "iv": "Ngrgze3B0IWLl07r", "ct": "yHsaBBgVTuukvTFa+6RnZwZ1j0oEKcQ55/I60elHWRDSAELSqcFRfDYqGe7jfhkKc4+Dotv1c6092S2J+iG/MQaoXbQhfcAVSbiZQoP2zk1S2jDRRbF6to2hFrXA0oX0AhnUn/MCf4KvfjfIwP/Sn7g2GmhG3fBGPNY2nV9X+9vuzHTe2g+5Gw0dpe01HE1B/D7q9VaBYUwg"}, {"id": "a662a2b9713690fc08bbc93f6b0eb261", "iv": "LoPTCl+2q5acT/wF", "ct": "L5/FvcGI8jYbs4p6DTluG/if/lxWWkGUxB4tEGExabtc1cG7UZrUWb0VY/JfRmTHeQQqCXSIcaMmnQ9+Nyq3+Oc5azRQ41xOfWjH7YPz+N3oeedwYz3objEil3ObuAycz+OuaA37fpx8HctFol36rervcFDaeP2H/SzbiYUBijmQru5acdRmS15xeIqDoqsgfummfn5t+oxUY/xKTwupeWLetsQ="}, {"id": "0a578c0c6e2f68240bcc967de9dc1b63", "iv": "jFT4jjSxbQf/ZT88", "ct": "Fs8K7ylHnHV4A24ta4uIX28N/+2eQ+zfMEuVM+RCDfUZ07Q9eIqsDrM7onJDSCnl47V1mIVxx5VUjMLgEjDqIGYKUsSw1QOMGXhRBBJYSL8jnKj+K2kX0BZl38XjDXH+Usn0qInkH1e8Lqvl0fQgLLWaFBR5QIqpT3mjFq0lTkilJ4883eUk7f/T0IkFmh4NHGZCv51updjoBVVDcZv9QPyTCfdw"}, {"id": "a4ea7c7a94e3ad41c394c64327ed359d", "iv": "lM2Q4ejAnTrJyEUG", "ct": "08b6bF1CIkR+l8zWbLKTAnhp8D8RUNC08GcVQ30l9vC389T37UXnIjIy7QW4EVxwh0vV6Yt+NepyESWxDeTUyBWRkaTZLAf2Zm0RWmeH7laOmoOCgRGEOib9w+ph4WZNgIRxx7oJ6583T7CNtanRYB8VMXHUg0cP1KhEEFeRI7+ZGN77GxGJUCE6XUwwx6bwjjZMmx10xZE6Ga4GAqBeQGKEM5s="}, {"id": "bd1fa447a6bc9c750137a7ccc1b51542", "iv": "69wrsRCGf1A4lPHv", "ct": "SxFHvBnyC66aMCUqFDyrb8fJAUTM4G3hBylthXaxIN3Symw0ujsb5vLDXfurtbE4G4n70VPuAK484GkWb9Pgi/rt29qTUz/l0efsvmuP+XHukZLSLm/JTCnZzTNaZbSc6ojf8mJsjtzX7sth9wFAiFAAQ1N0qK4v13sYO8LM0gjNGEU3VJDFSZa3lmMGyEPHowL8whHCAG+XZ15qzLgl5zgBIpc="}, {"id": "fdb4dd05dc08a64a025f9443ed2a6ded", "iv": "dIEM3IqlXz/OD6QG", "ct": "yVg3PaEsrx1655XcQ9ZH2ywQ2OIQMDCYMGYHx1N5X6DLYCntK6ujYaB7aBK0tfvpOd/q1ZzkFbxl1mJrfpQUEmJlhSNr0lii8udntsadXMWRHTKZ5ZlMJtpn8RzJX5j/Ddgruy5gEsK6+BTctTi44cHk7V+czHBvb2SJWpnBtRyJwd33F3iZJ50LE+UBZj3rRRIPsqZkrZg="}, {"id": "daf1e23c1f4a08d6a124e19fcd205a76", "iv": "modgQILmqtvN/2rr", "ct": "zgl8//sut2bR53QCErOm0wlXaadAT5JvAdL8BHC5O5UtHC6JZ31MvVL6nWhnw/5hP19mBEcpTTQGY9XPpuK+zJTXDsgA5Jvj4MJf27/Xh47mNdZy+4nnGJ5kOsvJq9psamHiq34Ne5a/WX6hP807yPJjC07+vWcXIKZpDni491KsKvO2wdEFv0G9hzUDHor9PqCB4Ul5IheLva76vGU6Vnc76/MA"}, {"id": "2c3ca484caee6993fee67c00bb1894dc", "iv": "CE49aK9ZLG3/8cM1", "ct": "hmJK1BZB8gW7I0vEQFrX+7NMQIRy0a/r40uvU0PFedWoGFhlIBXIb8qs2pM/nrlj8kAeshFJUZAjQm3Ob5/rESxTvCF+BCi/U89svbFuBBKdjZSde4pULffvz1oF2ZYlcNWP+GxHOwCNN72ebN+GRMjeSpm82uwBWg0B2W+M8nAeBAEbdQL3uz3HNzRmwqw+bYbk3wJVUsmLUTtAdzmWJ3w563A="}]};
+
+const enc = new TextEncoder();
+const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const hex = u8 => [...u8].map(b => b.toString(16).padStart(2, '0')).join('');
+// Solo letras y números, sin distinguir mayúsculas/minúsculas ni espacios, guiones, etc.
+const norm = s => s.toUpperCase().replace(/[^A-Z0-9]/g, '');
+const fmt = x => x.toFixed(2);
+
+// Escala de 3 colores de Excel (mínimo / mediana / máximo del grupo)
+const RED = [248,105,107], YEL = [255,235,132], GRN = [99,190,123];
+const mix = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
+const css = c => `rgb(${c[0]},${c[1]},${c[2]})`;
+function scale(v, lo, mid, hi) {
+  if (hi <= lo) return css(YEL);
+  if (v <= lo) return css(RED);
+  if (v >= hi) return css(GRN);
+  if (v < mid) return css(mix(RED, YEL, (v - lo) / ((mid - lo) || 1)));
+  return css(mix(YEL, GRN, (v - mid) / ((hi - mid) || 1)));
+}
+
+async function lookup(carne) {
+  const key = await crypto.subtle.importKey('raw', enc.encode(norm(carne)), 'PBKDF2', false, ['deriveBits']);
+  const bits = new Uint8Array(await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt: b64(DATA.salt), iterations: DATA.iters, hash: 'SHA-256' }, key, 384));
+  const id = hex(bits.slice(0, 16));
+  const rec = DATA.students.find(s => s.id === id);
+  if (!rec) return null;
+  const aes = await crypto.subtle.importKey('raw', bits.slice(16), 'AES-GCM', false, ['decrypt']);
+  const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(rec.iv) }, aes, b64(rec.ct));
+  return JSON.parse(new TextDecoder().decode(plain));
+}
+
+function render(st) {
+  const comps = DATA.components;
+  const done = comps.filter(c => c.evaluated);
+  const maxEval = done.reduce((a, c) => a + c.max, 0);
+  const vals = st.v;
+  const hasData = done.some(c => (vals[c.id] || 0) !== 0);
+  let html = '';
+  if (!hasData) {
+    html += `<p>Aún no hay notas registradas para este carné.</p>`;
+    return html;
+  }
+  const total = done.reduce((a, c) => a + (vals[c.id] || 0), 0);
+  const diff = total - maxEval;
+  const sc = DATA.scale;
+  html += `<div class="hero" style="background:${scale(diff, sc.min, sc.mid, sc.max)}">
+      <div class="big">${fmt(total)} de ${maxEval} (${fmt(diff)})</div>
+      <div class="cap">Acumulado sobre el ${maxEval}% evaluado hasta el momento (entre paréntesis, puntos perdidos)</div>
+    </div>
+    <div class="bar"><i style="width:${maxEval}%"></i></div>
+    <div class="barcap">${maxEval}% del curso evaluado · ${100 - maxEval}% pendiente</div>
+    <table><thead><tr><th>Rubro</th><th class="n">Valor</th><th class="n">Obtenido</th></tr></thead><tbody>`;
+  let lastGroup = null;
+  for (const c of comps) {
+    if (c.group !== lastGroup) { html += `<tr class="grp"><td colspan="3">${esc(c.group)}</td></tr>`; lastGroup = c.group; }
+    const v = vals[c.id];
+    if (!c.evaluated || v == null) {
+      html += `<tr class="pend"><td>${esc(c.label)}</td><td class="n">${c.max}</td><td class="n">Pendiente</td></tr>`;
+      continue;
+    }
+    const det = (st.det && st.det[c.id]) ? `<span class="det">${st.det[c.id].map((x, i) => `#${i + 1}: ${fmt(x)}`).join(' · ')}</span>` : '';
+    html += `<tr><td>${esc(c.label)}${det}</td><td class="n">${c.max}</td>
+      <td class="n"><span class="chip" style="background:${scale(v / c.max, 0, 0.5, 1)}">${fmt(v)}</span></td></tr>`;
+  }
+  html += `</tbody></table>
+    <p class="foot">Información de carácter informativo. La nota oficial es la que se registra en el sistema institucional.${DATA.updated ? ' Actualizado: ' + esc(DATA.updated) + '.' : ''}</p>`;
+  return html;
+}
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+document.getElementById('title').textContent = DATA.title;
+document.getElementById('f').addEventListener('submit', async e => {
+  e.preventDefault();
+  const msg = document.getElementById('msg'), out = document.getElementById('out'), btn = document.getElementById('go');
+  msg.textContent = ''; out.innerHTML = ''; btn.disabled = true;
+  try {
+    const st = await lookup(document.getElementById('carne').value);
+    if (!st) msg.textContent = 'No se encontró ese carné. Verifíquelo e intente de nuevo.';
+    else out.innerHTML = render(st);
+  } catch (err) {
+    msg.textContent = 'No se pudo completar la consulta. Intente de nuevo.';
+  } finally { btn.disabled = false; }
+});
+</script>
+</body>
+</html>

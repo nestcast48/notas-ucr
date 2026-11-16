@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Consulta de notas</title>
+<style>
+  :root { --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; --accent:#1d4ed8; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:16px; font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; color:var(--ink); background:transparent; }
+  .wrap { max-width:720px; margin:0 auto; }
+  h1 { font-size:1.15rem; margin:0 0 4px; }
+  .sub { color:var(--muted); margin:0 0 14px; font-size:.9rem; }
+  form { display:flex; gap:8px; flex-wrap:wrap; }
+  input { flex:1 1 200px; padding:10px 12px; font-size:1rem; border:1px solid #cbd5e1; border-radius:8px; text-transform:uppercase; }
+  input:focus { outline:2px solid var(--accent); outline-offset:1px; }
+  button { padding:10px 18px; font-size:1rem; border:0; border-radius:8px; background:var(--accent); color:#fff; cursor:pointer; }
+  button:disabled { opacity:.6; cursor:wait; }
+  #msg { margin-top:12px; color:#b91c1c; min-height:1.2em; }
+  #out { margin-top:8px; }
+  .name { font-weight:700; font-size:1.05rem; margin:8px 0 10px; }
+  .hero { margin-top:14px; border-radius:12px; padding:16px 18px; text-align:center; border:1px solid rgba(0,0,0,.08); }
+  .hero .big { font-size:1.9rem; font-weight:800; letter-spacing:.2px; }
+  .hero .cap { font-size:.85rem; margin-top:2px; color:#374151; }
+  .bar { height:8px; background:var(--line); border-radius:99px; margin:14px 0 4px; overflow:hidden; }
+  .bar i { display:block; height:100%; background:var(--accent); }
+  .barcap { font-size:.8rem; color:var(--muted); }
+  table { width:100%; border-collapse:collapse; margin-top:14px; font-size:.92rem; }
+  th, td { padding:8px 10px; text-align:left; border-bottom:1px solid var(--line); }
+  th { font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); }
+  td.n, th.n { text-align:right; white-space:nowrap; }
+  tr.grp td { background:#f3f4f6; font-weight:600; font-size:.8rem; color:#374151; }
+  tr.pend td { color:#9ca3af; }
+  .det { display:block; color:var(--muted); font-size:.8rem; }
+  .chip { display:inline-block; min-width:64px; text-align:center; padding:2px 8px; border-radius:6px; font-weight:600; }
+  .foot { margin-top:14px; font-size:.78rem; color:var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 id="title"></h1>
+  <p class="sub">Ingrese su carné institucional para ver su desglose.</p>
+  <form id="f" autocomplete="off">
+    <input id="carne" placeholder="Carné (ej. C1A234)" maxlength="20" required aria-label="Carné">
+    <button id="go" type="submit">Consultar</button>
+  </form>
+  <div id="msg" role="alert"></div>
+  <div id="out"></div>
+</div>
+
+<script>
+const DATA = {"title": "Consulta de notas · LM-0359 · Grupo 04", "salt": "R/MWd9PLTB/uPTiO9qqtKQ==", "iters": 200000, "updated": "16/11/2026", "components": [{"id": "rtp", "label": "Asignaciones (RTP Total)", "max": 25.0, "group": "Asignaciones", "evaluated": true}, {"id": "ic1", "label": "In-Class #1", "max": 15.0, "group": "In-Class", "evaluated": true}, {"id": "ic2", "label": "In-Class #2", "max": 15.0, "group": "In-Class", "evaluated": false}, {"id": "ooc", "label": "Out of Class", "max": 20.0, "group": "Out of Class", "evaluated": true}, {"id": "p1", "label": "Parte 1", "max": 2.0, "group": "Proyecto", "evaluated": true}, {"id": "p2", "label": "Parte 2", "max": 8.0, "group": "Proyecto", "evaluated": true}, {"id": "p3", "label": "Parte 3", "max": 10.0, "group": "Proyecto", "evaluated": false}, {"id": "p4", "label": "Parte 4", "max": 5.0, "group": "Proyecto", "evaluated": false}], "scale": {"min": -52.43333333333334, "mid": -21.15833333333333, "max": -11.450000000000003}, "students": [{"id": "5d15a4e56537ca308ce248dc7da9623d", "iv": "KQhaiJJVzGk6TcCy", "ct": "MnSfeyjgARDkocAPELjeVhqkdDGZB44R4jX3joH1zGl/bOk8ST3rAYQmeT/IDd6BUPS8q9MucH2g+3fOS9ZEwZ/uDojOXBBKRSuuWTRrB4o9sE5m7AGnKw37ZtGN5Mg+YY84tkUevQUZkOx4TVhkp1YNIHs4syz6UUA5rzQrg3aY09L+xpKc6OvZwyEHQiO3dII14k83+29KB7AiqRE0goGviQE="}, {"id": "3af7d764fba797c781e6d8a72fee92b4", "iv": "h0jInkJqWeISCfDx", "ct": "NykeNwKaTDCMZy/Rw0sh0V+WljZeGHcSsVMoxsY/h9XXAh0cN6Je8U+0UdHNNKlVR23K6NUSUGi2FgnffN775ctlYwXbeDhirEhe0+5AiFtKH/pQ1a5GJUVgmVpm9OhJ9C8oRQlwuI0E4tM+L5TX4Iop9qf2EtuWEJcdzcHHNh2hui66MDmzDlTzKcB1F8MckzWr9qK0gm5TWXcTKfAa6pdcAezuDA=="}, {"id": "ed29a3b50d070d1889ff0194d13e73a4", "iv": "Jc+YXVgR9F18JDxF", "ct": "wlvlW07iHmtbmKL5aB34qVgiXzqg8G8q7QWwmpvQWlEnX9Oo7gf8girGelM0/GTMH44sgS/McqnK17pHoJb9tc6b1IUT5x0Qn9SRUtgaHI5Hn/Z1dZorOTERN2lIfkGATVIUsWPQq5KWvIUPiPdeL2kU67QYxhAjmboT+uuuEC6J2F3rBANXX1CMOvc9MGjDCpqwLQXRSEGC0CqqpWt6B4YG6MkGPG0="}, {"id": "20d4aaa163e2e5ee4dfb8ac51b676371", "iv": "GlluVOmJN9hNPCds", "ct": "0kG2I0EFDrYp9dgrFagBNas1fylxd5JUapu5fWUn9L069MHux7OBBW+tPCLuiTwVfJi6I4n+XdRaUMm2xJ/gdqYqbEk0VoBpub4iMJD4TmPlSNHvUi/6mH6j69kAmplijxXArISktseMZfYt5thuGo5ZUBtLe/OipzsHySTz7PoPZBYy2E63GNlZiXwagE/2z/ZVeI+bpshIf1g1b+tEIz43U2JAjA=="}, {"id": "fbe9a15ddc339cd3a87be3bc7288c03b", "iv": "XAORV1hk80VoIGRs", "ct": "FOc/dcfDZEzjhUbkEyt8mmf7QVYc/7LWLipfVKsb8HYzZvu9B1hSVUe4RUDeZm84XjVe02JTcCADLLeV5CndoYwRars6+A9dUHZidLszyhL8JO85+dvB8e1VHbLbEYbBZpBb7FhqlSu5LzoDqvr8U3foMrWmGvW9ik8hodtKlaoTSSD9lDhscNUb/93kkbUUcvO8Jns62IHOPDk5wsepQYCr9o0IZ3c="}, {"id": "55350a84940f6bfb95489b3f52f80174", "iv": "ta+mrDhh38wgA0ud", "ct": "eoluwgHP52OK07yfWwS7CNyz/Bb2ImoRexlwdPrgTnWINIBsikxCMcaNvR3leOtuu/l8dWF3DCWPQM7mhFf4OFCCPjxmK9X0ONyo8a5ZZvmTqZZ5odPPEIMl2FC7wydu2wfTSNqXFvWKI/KDt0O391BqrHIh1bUCzq7DDqDO01Jz0mPDKnwJuYtUEmh5FltH9w0YhZ/kSHzEfcmnJw7N5lboTDAPowu7"}, {"id": "4258bffdebcc8ab485672b44994b45fe", "iv": "jJEb7VayIjHwKuje", "ct": "WGwG1qWT8KiymkgXPtL80YPMzIabIyTDwpg0rC2NWrtWcPsMy1Fo4M64HFRjIqqDLsH75/2FxYvjmKLag+TKkYYoY+v9RhxblWUmIHDBZAYBWQaKbiHdMtG//Vx3h/tW56+GKBYUEUfkVs6Jp480NLsP3D96IvaCxXvVBbp24ew9T5mlJbFlKyvU+m7zNXT5hT0ZK65PiWhUGQ=="}, {"id": "a5cc0af597a3bfc1e99910ecd60c0833", "iv": "MA/eMGAkUo+oY5Hi", "ct": "7gb5pU4rLCg3/UQMEV8G+sErBw8d9233VprsdIZf3C1VcKwJsgVcQhssvjUQ4Ns6MtHacU3RAq6uF255/J14UbChoCgxde/5fvlFcyZQ+KfVA1JgqKUmqbBrupwxIgyHLHZYNDkqJWeI9sK1NC4cT65QsQbkOpiNuxAZlHfPeUF5lB9uDFUY/oruvWTuvjE2xiV+yGhxTIcns1c5TDK9KKtAo+0ZdQ=="}, {"id": "d0ac8feb932ccd88582de1ad2ced0a2a", "iv": "qLTnF7YrQHCrZK/y", "ct": "m0ae4Mu1loztwG2GsJlHQGALzqSzJLN+LH+jiq5wx7Q6rtDmJc9EBfXKgPLbzXfNwiU8nB8Toa94gyLRGWQUhVESSGQrHy6s7E6c4Agl1rRVLYjBEk5RH6em5c8zPIkoIw6tLj6RxuaTgKxrpR9RKeFKckV91JPi9YLjbKWkTUb9uSQTb7mvZlQwDiHKXCXyuKgSvMS01HyvxRUKw+ozZ1oszwxovtI="}, {"id": "fe1e563819055852f403cf3f3bc2bab2", "iv": "Qtr9oM3A4flyb6J7", "ct": "IKOPTyUkbJKJAC0a3WDayQMhwFwugdG6zFRCIJgTk3FTlGVJOnHgOnmrbLDNRcJ/d+OUV5LLD8g7azSMX44Rje1LRYXA7nQFfUYmLgBOGgRJjykPlWzGfVznnwY5DkL1B/YGWi/vrWL7+q9v4odZw1dBZ0X/doMDG5/kl3raZERj8GwQsbjYbol/xLGJ+i93c9fJsSYqGzVHrlaXtib2Sws7XkKn4A=="}, {"id": "d36b4334891c66c6713bfdce805b6e91", "iv": "KVkEEK9JVv28s3hA", "ct": "yzO/matKuulJfHqPoLJLElh0B+VnEw3YHApCCXTrCeRAUdFZ/sL5dpmoZYf10olKq3CumBGiuprUfSPa+1bP5maJCaPfos3RNg5qNxylQRXFX7UNBR0Thg+mOUmeafIEJG8T573v/KpWTIRy0pGboQ3huuyEHO8BcQ9qzri9"}, {"id": "80f9d7d85be4ae99a2d15a9deebca70f", "iv": "fQsrsriIplW1Ni48", "ct": "6EN4iMQpwLdODcQdnf1Z0gHsWNPBFaWsPt0DfFFd8XxVbsN1zGDl/jFhLg0nHPEX/0HXl3duKcjq5lMhyT/CNOHFRMPOJPO6NpW+YB13FJUCzKvkY2X8JlD6KMklOgj1hH9ZdI2aDSuxNurQTWF5mzwj9VEBLTAriOmTZ0q9W3cwHzRxmIkSKaG7vOwa7eyr+Lmj0oEDDII4dg=="}, {"id": "234e2d3a8621efd5131641dd5bf8016d", "iv": "ZPig9zM9AC8rLLFE", "ct": "7/d+8ff7y/caQEf9+xovf4J/6MFqxWVsZ0nrZbeDn7EWhXF2N/EEzvsakXRlzmslZd3KHDxm3p4EwJRB+bP6TKSGp/FSNbT76Lf6RHNxsc54iG4bpHo6JjILXuSFufGcTcLlmZP1qCB75fjNcFr0t76siSeUhSsudJdGVA+qx7ksXe/Il6l0RsXvzRvnbMhuaXtARPleTExUm050xsdTwlo8yZyT"}, {"id": "dbf93e333827975051cf3bb3e6a4497f", "iv": "uuuJPu6puvv5YtRS", "ct": "f4G3VaKTm2LoVZOUxG+CQRDkJcqlPgC2OtPPA0dv0t05CNrzk5dYCxwvjTtPMzjfosu0QPUValZO+pLbPqnMUKM/Vj/FbFDj17p1fzJCDzUoH+4TYoJC1m5MAwzoPqSSlI1z4B+3WkESFLiX3dL4QT/Roig0I5W8bMMKhKxUXg5TxZ7SCBHeVfKrudHwZqE33FfAxABLXLf7I3+2pj2N5hgA8ipcpQ=="}, {"id": "36469f3c5e7aeb01b331c7c05fd9e790", "iv": "RvpCNQCFnZnPUM6s", "ct": "aZrLxnR12HqUJudIbb8X35+ojAozq7bFG2ge27y/Q5DJQgwmzT5+MvD3+sSLlXi1uVYHHdlXKFGHgP36EfKw2OJIuwrBnppJKYdHPX22JD5kTbIT8Ab+u3x5UW7zdwhHWouWt1y9MF1e4j5EueAbiHSj4DLdFzfgwCqJKB+O"}, {"id": "67112192c41dc2a67fecfa156b90fbc4", "iv": "WUKwAkjU2HLU/pJk", "ct": "c9quXBZ3IiyGx22D2RkeQ+sHfnRizom2Oz/iidysFvbUvM9Okx8BULH/AsZmXD2wfAd5/xhd+CzTG2fC7SvkRVYgrk5ezbiK3LM7MN6UPQjElOLvnBQfM6yKPYA3kCsN8jeJZo3SDZPIMzxWaqnEN0IMG4uhFeNIaJ/N2S5E6qEGyiduDjyRzaFsUXiUW9LRp7hCBJpHynuW4A=="}, {"id": "f55727cb72ebf3166151410e82994d0d", "iv": "VXzpjh49zhDcvsON", "ct": "AdkUnKY3sbfUsuKW/RiUAn++JdY3jPJ3K/qSVsctjRlLgPMM68D0EEiqQey3VJv3d4o7o8Ccln3r4vSCoQA2LArtyN8eAievN5k+8uI1gHa7TIqEwtJ0YxW2K2WWBGwVnBq9V2mG18O9hOVI4cpPpfCnSriFbFCVqhpZkUEBopzJ8UhUBt7rdNauYI093CMng1o7AgMVo+siCMmyND1DuZxXibhaU6U="}, {"id": "d69ae8b457ce70e9972ca5def9a621e1", "iv": "ShcWAQ/DOxG66CYE", "ct": "l6TGiJ7cPTIBDcrnMiAE18NZEzfG0YM4kAfpJAtXMh8bRsBhUF5zAD0OZIgZathyTzK5yY+JGS8EO1KKN3xolEqkRVNzmLZgM21U47PyDVvDBDTUOWXL5PQ73cBWFH1hR2muSvV74mkgK6MIwYuYahQMVBSRt+T2/xjBdDhJ8YU2M/QXCUNOm6ksNgyP5A8SKskiM/hb7crRcUjkjUnRthe7kYuk9w=="}, {"id": "b659076c2df53c7281829acce5e77b91", "iv": "xb2cbqZ5GBM0hxK5", "ct": "kAdAre0/Ku1AXLJ9EjD58Sp2ECJopoAtQJxVfxC5+jvTN2/JD/VzigITygsGV9a7gOLlJdty9MXAEyG4Tx6gBWrzkkLW4DYsafNqozFFTheqhJNMBw9ZXsAxVnehj6p8V6qKS0SYos+m0kS2dn/3TuSlS7E53R+vqCTKEDemN8Gv5OnZkkaeHedcgCBhJWfSnuaXhNix8N4RI7QI4bnA3LDlh/HhtCo="}, {"id": "76890dd6c5a297f1d9827e6783b364c2", "iv": "OlAfHBbStVWavXk5", "ct": "SaxhdQSM32mN6GwEtsgn2jpJrIIy1k5ZAS7/LqNgfWxd1yU0VG4l3pvH6uwNmcWkz7e5mCeiznpMnKVAmW88KTwCoshpumk17OqSzgxpWkaSVFE9u8H5akUu52ltHOJ3iolZ9kUC2LxYr3GJ6hLTG/sEJEdjHBYLRW8egxaSZsTSgoxp2H9mulv1+ukNtVgN2CaNEemzct9oIM01g5Zp9rwy8Mebae4="}, {"id": "773fd31867f3b4e76d79bd5433d511ed", "iv": "34Tj86D8l/ef2ngm", "ct": "VCBIATpS7FSoXZu2AfmYMUz+v0XUrJTDcRNkTVQMTP9wgeTmU5UxKROv6mEOoKSpL7gvHmF3Lb32s4DO1zZH5IwQEsS54h8SIcfslQrcA2aHqs+B5sfYJMcA89+oOMKm+7KSMa4wsVxXu/fkItIJ0sv1KSbbSpn4gM55xLIORVpv6g8N4PrTbzG7veQhVIhwMdgQKRxKjAC0cmGfHetJAQIsKDJhZA=="}, {"id": "81fd72f4d0641b31a571b96aea65989f", "iv": "0e1Rfw8At7i7GSfb", "ct": "eYtLESONjDq1MyjVysPxwRhNGLnWaXkIgSrO9ldKay155mCJ7DZjTwmTqLxs1vf71CwstWCElmJhVfuMe+YPcw5YcrC0JwdEoH/eSINbtSe3iYCz7hIfBdqG9nn6582umo6qYIfiR1sjAtFl+DFZqP+REbx3phHP2gv0Sn8xwDSsUaygz6Qb//f0nX67EfqjY0gS82I1Ry12aSCSv46htOprJs3FzQ=="}, {"id": "ebb83338578989ccc2f99c8096d0d313", "iv": "jGYNaBjghe/4Arqz", "ct": "kE4LpmfsTVrkSEgpweUWYsmdPI1OwdRxiNgd4CHrqxN/twWX7Hfte8DyODRgMSDHe3QFo4AzQ+mznUUIWATwLVLT7or1i4cUnRm7JgrPrjhlxvob81Ss58DRJD/YAa0U06Ojj/vS8eAna/lFqdXCbstSFRdBn084kGUsZNaWcbJ8oZvUxB/MKPiqHj0nARQdEX44RG2YD+Gm7kVqcxsUbA8BK3tU2w=="}, {"id": "9153d79fc2a3bce435c59d3690069112", "iv": "y69c7gg2lody0l8Y", "ct": "cEUbmAn5nBDQor6fE52iZuMH0eIbWpi+9c1asf7E6cjE5KgIklb57sgw8KdsTc7U/byeZHCCJcdRX0cxyoNKkjZcf4OTidItMb7C3xt8IydmUZHW2CyfaKiDcBxKD+ZBXi1hrGOO8zWu1Q/7yhd1fcRhHWi/2XmS4hDIuLjJ96SRgCrpUEHo4nfRG/MsApsX/XkDM/A0LAye"}, {"id": "88b58a08d9050f508f3326e8cb15e153", "iv": "wxPV2ouvizzPyxJd", "ct": "34XcCS7MDukflgS+51aokt61OBSYH4ojw0O7WvBPJ8DlJYlBeZArf2ZMJI9phaJ+oev0un4W49FWzxFHTQyqtMjRFfjvjHZP2EUVdOvjv56q7U00fehbgobIbp4irO+YWwpHJNED1Q6OXL5CVR9Hpqi+rphOyNaiAqCgwFWRTJsMNMkrdYv/z3YknjRHzNrbFhCzV3GHZv4O+6jcypIH4xoHduZnNQ8="}]};
+
+const enc = new TextEncoder();
+const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const hex = u8 => [...u8].map(b => b.toString(16).padStart(2, '0')).join('');
+// Solo letras y números, sin distinguir mayúsculas/minúsculas ni espacios, guiones, etc.
+const norm = s => s.toUpperCase().replace(/[^A-Z0-9]/g, '');
+const fmt = x => x.toFixed(2);
+
+// Escala de 3 colores de Excel (mínimo / mediana / máximo del grupo)
+const RED = [248,105,107], YEL = [255,235,132], GRN = [99,190,123];
+const mix = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
+const css = c => `rgb(${c[0]},${c[1]},${c[2]})`;
+function scale(v, lo, mid, hi) {
+  if (hi <= lo) return css(YEL);
+  if (v <= lo) return css(RED);
+  if (v >= hi) return css(GRN);
+  if (v < mid) return css(mix(RED, YEL, (v - lo) / ((mid - lo) || 1)));
+  return css(mix(YEL, GRN, (v - mid) / ((hi - mid) || 1)));
+}
+
+async function lookup(carne) {
+  const key = await crypto.subtle.importKey('raw', enc.encode(norm(carne)), 'PBKDF2', false, ['deriveBits']);
+  const bits = new Uint8Array(await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt: b64(DATA.salt), iterations: DATA.iters, hash: 'SHA-256' }, key, 384));
+  const id = hex(bits.slice(0, 16));
+  const rec = DATA.students.find(s => s.id === id);
+  if (!rec) return null;
+  const aes = await crypto.subtle.importKey('raw', bits.slice(16), 'AES-GCM', false, ['decrypt']);
+  const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(rec.iv) }, aes, b64(rec.ct));
+  return JSON.parse(new TextDecoder().decode(plain));
+}
+
+function render(st) {
+  const comps = DATA.components;
+  const done = comps.filter(c => c.evaluated);
+  const maxEval = done.reduce((a, c) => a + c.max, 0);
+  const vals = st.v;
+  const hasData = done.some(c => (vals[c.id] || 0) !== 0);
+  let html = '';
+  if (!hasData) {
+    html += `<p>Aún no hay notas registradas para este carné.</p>`;
+    return html;
+  }
+  const total = done.reduce((a, c) => a + (vals[c.id] || 0), 0);
+  const diff = total - maxEval;
+  const sc = DATA.scale;
+  html += `<div class="hero" style="background:${scale(diff, sc.min, sc.mid, sc.max)}">
+      <div class="big">${fmt(total)} de ${maxEval} (${fmt(diff)})</div>
+      <div class="cap">Acumulado sobre el ${maxEval}% evaluado hasta el momento (entre paréntesis, puntos perdidos)</div>
+    </div>
+    <div class="bar"><i style="width:${maxEval}%"></i></div>
+    <div class="barcap">${maxEval}% del curso evaluado · ${100 - maxEval}% pendiente</div>
+    <table><thead><tr><th>Rubro</th><th class="n">Valor</th><th class="n">Obtenido</th></tr></thead><tbody>`;
+  let lastGroup = null;
+  for (const c of comps) {
+    if (c.group !== lastGroup) { html += `<tr class="grp"><td colspan="3">${esc(c.group)}</td></tr>`; lastGroup = c.group; }
+    const v = vals[c.id];
+    if (!c.evaluated || v == null) {
+      html += `<tr class="pend"><td>${esc(c.label)}</td><td class="n">${c.max}</td><td class="n">Pendiente</td></tr>`;
+      continue;
+    }
+    const det = (st.det && st.det[c.id]) ? `<span class="det">${st.det[c.id].map((x, i) => `#${i + 1}: ${fmt(x)}`).join(' · ')}</span>` : '';
+    html += `<tr><td>${esc(c.label)}${det}</td><td class="n">${c.max}</td>
+      <td class="n"><span class="chip" style="background:${scale(v / c.max, 0, 0.5, 1)}">${fmt(v)}</span></td></tr>`;
+  }
+  html += `</tbody></table>
+    <p class="foot">Información de carácter informativo. La nota oficial es la que se registra en el sistema institucional.${DATA.updated ? ' Actualizado: ' + esc(DATA.updated) + '.' : ''}</p>`;
+  return html;
+}
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+document.getElementById('title').textContent = DATA.title;
+document.getElementById('f').addEventListener('submit', async e => {
+  e.preventDefault();
+  const msg = document.getElementById('msg'), out = document.getElementById('out'), btn = document.getElementById('go');
+  msg.textContent = ''; out.innerHTML = ''; btn.disabled = true;
+  try {
+    const st = await lookup(document.getElementById('carne').value);
+    if (!st) msg.textContent = 'No se encontró ese carné. Verifíquelo e intente de nuevo.';
+    else out.innerHTML = render(st);
+  } catch (err) {
+    msg.textContent = 'No se pudo completar la consulta. Intente de nuevo.';
+  } finally { btn.disabled = false; }
+});
+</script>
+</body>
+</html>

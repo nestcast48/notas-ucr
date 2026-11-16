@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Consulta de notas</title>
+<style>
+  :root { --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; --accent:#1d4ed8; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:16px; font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; color:var(--ink); background:transparent; }
+  .wrap { max-width:720px; margin:0 auto; }
+  h1 { font-size:1.15rem; margin:0 0 4px; }
+  .sub { color:var(--muted); margin:0 0 14px; font-size:.9rem; }
+  form { display:flex; gap:8px; flex-wrap:wrap; }
+  input { flex:1 1 200px; padding:10px 12px; font-size:1rem; border:1px solid #cbd5e1; border-radius:8px; text-transform:uppercase; }
+  input:focus { outline:2px solid var(--accent); outline-offset:1px; }
+  button { padding:10px 18px; font-size:1rem; border:0; border-radius:8px; background:var(--accent); color:#fff; cursor:pointer; }
+  button:disabled { opacity:.6; cursor:wait; }
+  #msg { margin-top:12px; color:#b91c1c; min-height:1.2em; }
+  #out { margin-top:8px; }
+  .name { font-weight:700; font-size:1.05rem; margin:8px 0 10px; }
+  .hero { margin-top:14px; border-radius:12px; padding:16px 18px; text-align:center; border:1px solid rgba(0,0,0,.08); }
+  .hero .big { font-size:1.9rem; font-weight:800; letter-spacing:.2px; }
+  .hero .cap { font-size:.85rem; margin-top:2px; color:#374151; }
+  .bar { height:8px; background:var(--line); border-radius:99px; margin:14px 0 4px; overflow:hidden; }
+  .bar i { display:block; height:100%; background:var(--accent); }
+  .barcap { font-size:.8rem; color:var(--muted); }
+  table { width:100%; border-collapse:collapse; margin-top:14px; font-size:.92rem; }
+  th, td { padding:8px 10px; text-align:left; border-bottom:1px solid var(--line); }
+  th { font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); }
+  td.n, th.n { text-align:right; white-space:nowrap; }
+  tr.grp td { background:#f3f4f6; font-weight:600; font-size:.8rem; color:#374151; }
+  tr.pend td { color:#9ca3af; }
+  .det { display:block; color:var(--muted); font-size:.8rem; }
+  .chip { display:inline-block; min-width:64px; text-align:center; padding:2px 8px; border-radius:6px; font-weight:600; }
+  .foot { margin-top:14px; font-size:.78rem; color:var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 id="title"></h1>
+  <p class="sub">Ingrese su carné institucional para ver su desglose.</p>
+  <form id="f" autocomplete="off">
+    <input id="carne" placeholder="Carné (ej. C1A234)" maxlength="20" required aria-label="Carné">
+    <button id="go" type="submit">Consultar</button>
+  </form>
+  <div id="msg" role="alert"></div>
+  <div id="out"></div>
+</div>
+
+<script>
+const DATA = {"title": "Consulta de notas · LM-0359 · Grupo 02", "salt": "/co9RuGnIfZBTW1pEapjpg==", "iters": 200000, "updated": "16/11/2026", "components": [{"id": "rtp", "label": "Asignaciones (RTP Total)", "max": 25.0, "group": "Asignaciones", "evaluated": true}, {"id": "ic1", "label": "In-Class #1", "max": 15.0, "group": "In-Class", "evaluated": true}, {"id": "ic2", "label": "In-Class #2", "max": 15.0, "group": "In-Class", "evaluated": false}, {"id": "ooc", "label": "Out of Class", "max": 20.0, "group": "Out of Class", "evaluated": true}, {"id": "p1", "label": "Parte 1", "max": 2.0, "group": "Proyecto", "evaluated": true}, {"id": "p2", "label": "Parte 2", "max": 8.0, "group": "Proyecto", "evaluated": true}, {"id": "p3", "label": "Parte 3", "max": 10.0, "group": "Proyecto", "evaluated": false}, {"id": "p4", "label": "Parte 4", "max": 5.0, "group": "Proyecto", "evaluated": false}], "scale": {"min": -42.90833333333333, "mid": -19.674999999999997, "max": -11.916666666666664}, "students": [{"id": "d12677ae3f56ac6c14fdf754a6773966", "iv": "nAU1CbRj6XFU/lW7", "ct": "L2/6kmmYOfMVAdPpYTY8gBCZW5SQKD9aPBCuMt0qE6IbwEk6Gq1pCrkJmVEMXc6lSW18u1mIyVYqumjboouepbqVGPlkJGUVzLKoEUvpgBPKAdNDTEadonIMz12ALzmCfnkGFcGkmXa1VE2ycBqAtltIBDd3r9VQ39FF6kjm7EtO/0kAXHi2U4hcO9rMIiwznF5ZwA8PGKEaVlEM1m8GEeta9BFg"}, {"id": "abb540c1eb37be5607ad6b66f6d11c0a", "iv": "NgE1FY0RP0B7Ni4k", "ct": "4C7zrZrAYKuKLgi0TqcCPv8c2AvvYA77TCAPIzYPAKGgwWNOaTly0g/6vfE7q/cWQbtnLn8NHlHaoLUah3pLLeOsWyVK17WfHOcy45xELg/+g25EKuCtf84LF0vkBIhQjvGLMXs+WEWVMPVd0oTbu9FQ/Hqh7M2N+qXAJU2V3cCIf8IrzvKAVZ4QgBNAarQwFD7VF/0FV4OgcQ=="}, {"id": "db4dd94837764b951b958d3347717ad0", "iv": "/SapWJ+uSBBRifAR", "ct": "P8eur4ci3h/Yf4PdR0IBVL7doSG8moXaBGcKL6K7lEGulHWLnwtr9dq0tZWPbQwJx6k/mHzYAoUyRt4Y8v/ZHaNuThYD6REqWJ8UlDG1QSumkFGZNYGSijD5ThfaNauNk/BeZK4CRMN9USvJFegL0XVFqXyBiLcFkJCK7XXjqsALLQQm6SR6DwMPR+I7QJuSDMOdy9w2aM+EiA=="}, {"id": "92eb7db44f6931627e891917df9d2775", "iv": "usV9PUZCUCLCBAtf", "ct": "68wfktDW/J5OFMIeQu9l4xWgReHncPS5+nYJ0clLCm2T1w/w1ZgnZIws+8UcFgNmOt6bZ3O7n+zmQs6nGqglymDV33exww2CDIEKP5T5Reu8EJI1sK+F3MLqOFuhgnmHOfbtqjNJ1yQRdCNI+TgJSVoC+OfdJVlBduyLuBT30vPi+rfOCwwR9pyJzioCwuX86rjqm+GijMqlruyv2fbEwnuLVtTSjdA="}, {"id": "16ddf6222d0b9b675164ddc444a3f91a", "iv": "MhFbK9w3HHcB6ZpZ", "ct": "wgQKD3bAqM7mt1CpF/a7QPIS7V2fm5N4AuCg+GOlQAPKlkI5ldLs5TECvsZr1+obDxkWXLKJ6iY5I2WBcZBYIJK0f+v1q2fsgqSPT3jZMuYeIHsAmPx4QYlseLXU62uz5mLyYGAkkh74oKUMub2J8UGSrHVzDroTK4MEH0l9TIm89yGOMSTfVTa2vln8Fg37BYQkpooWE0Ar/qMSLdVYVpE6qPNpcQ=="}, {"id": "39599d7de5d71b029ec1e257ee7e1a98", "iv": "GFgdqzwCB70ULxSm", "ct": "akla9w4l3Ejubmmcu+/SX3kP6FmADxKhXXaaOJOogrHudMkXtt4CgrHu+uT4Al+3z4qp8UofKazMzeRJa41r5cktwx268LUX4PW3fwyRrGJhC/bnV6w1zYF3YnKzeegFTc283xyujQziTExykOPlwRRKT6WQ0A5hjJwR+IsoyoZk9Vhlu/KE2Up0t3OGav8cgSF0YjdQDk1tLg=="}, {"id": "e75d582b3ce36b0faea9d99d693f1868", "iv": "4/p8MwQ1/GXPnmfD", "ct": "iJblw5eaEQcd0rPazW+3i+BY/WmNj/aSGvDh4YpnO+oKOsqxNan5bCocP9Cd9xs04UtBZhAXwyiflSLfN5LmN0cnzr6SJHplNkP0tJMw1V6YOR6/DaUPNkHftRI1kZXQzCUzVfX5cplKwNZkWVntE9Lp/EnzLR9C46Mb9m5xbFQL7TbMMQhUpR7zCiVzNkR2KtpwSXmNTCuzNCarzBdBhvXec6LcLWY="}, {"id": "68b4f4eed2c9c0daa339b46681f84828", "iv": "1TN9BU2RSQuZV0D1", "ct": "LBTXPMCX+FQ2TxD8/SLsbMNWERWLpvn2sMonAasCpf1mB3voVo++3Xv1py/xyDnp5u4gLl5xwGQNXWIVjhkrSdMi2ot1AwiwN3OqjQavsmN2E7guJ98pPoePWoo8OAR93shJwLB9hcO+8pAohvR/2rbxURT06QJQlTb76gU1Iz8C9Xc1rUyzMgQhX6MUM9+IKTTFOJv/UrI4XTEU22V/ZiwTD+ztwja5"}, {"id": "2465c16b24658ced0cc1f47a8a63c993", "iv": "Ih9yUu11/RX1nqTH", "ct": "8azG33uFEwG5iYMedAfo0Gk3aOlKzph1Hi8g9fOWFuh8J1dOm6em2uuCGuSlBc3CiHk6hlITx6rBzUzXiY4IRB09JHXP27/WV/eeKq5d8HJrua2h0UtkltfTQOawBPn07X3RU4wZ43ReoIMKCGHwFlozBL8aL1DS1x9Em/CoMtnNc8m03/hFAg5UgBLYVCo3tZ8uBC4AAAhXLx8Uxb5YK/Q+DrXm"}, {"id": "e2ddf36b76d20a189e5ecaf8ad2a84c0", "iv": "JZrDfk5c/rD1uSx9", "ct": "9Doe4a31M2OzjPCINILGXF1jJAwOxDHxnTamxDPMUSNn9w5+96DztYM97wTwSoWu9EknK1ri9AEXdu0yRPIijf82fVEPv+7RzzFW1HiNuwrRJlUIDVUXOq2p0BnBgbeV7PJTRRr3Yi05I71PLMHTUP6xHMnIoaq+xeEwRpD6bEXCe/gurGbrrv9LUBl2lQMxJ4ol3fph1aCE"}, {"id": "92b39654fbb5f4a49bbc2139627b2148", "iv": "iVhCG7gCU4pcgv/S", "ct": "WcONGTAgYntiTxpCEZCQBGGkwsv8+vyQ5o02G/guzCG7kX7OTENOBYCfuuM2t1xnbXLTh4OCq3FwAmMaLf8pODFVZBC5uY0O5ACadOof0r2D4sirlRtKKfU/zwV8pipmY5QaRKymRo2HEbDNNuHjc3d/4994ycVsnfbZZ6gu"}, {"id": "e48d7f5d701c7346baeaa094307204eb", "iv": "Nx0aoeyUS4Wql6/B", "ct": "SMIuig6GayEDhiT5BsUvahhwqellmrjr4zv9EmuU519Emzj5MXvMBO03D6GS0vSgCqoVQWxKkxjJZj4ut5kIVtADfiY9m8/UrgjRGyElO/L6zIo8xD1CfRrWk308Nq6cfNVru0kw8WR++dFGANANtOW/SoK58bTebvTMP1a8LaCgD90X9kvLZWlSvZZPwpvn6lz9PJL6XQoHBw=="}, {"id": "44e6c7e6b27a1973e0251abc4334042c", "iv": "KeVI55q8EH/P+3mW", "ct": "bFXo9nfdNbHsGNWGhxJ0KgJ1KHJ1QVkbLxsswHYftcwfYI5wGTX+gnKQtOtRO1aPJsvtB2Yhaki2MP4rrmgjGiRLyK+9+384jf+e/i4AqwFpBoo+L4C0crJkzJLKOvjNKKGHri/Ov6eOb+oXg7aVEJ1LJLf6MFAtYEqH7DW5RT0gwDmWeTXnaOdzXC8/5JTY+aRaD8YInuL/6o0="}, {"id": "0613de0807f196e5d833d6ed5b667857", "iv": "vMFmra4F3p7H+G+P", "ct": "bicFvkdzXQmWoKreYX9K/SvOw0kCKAUo/cF9Qu5+zblzfScmMRcd/lUpFWOhoWBuDuxLh7VQu5qsbARMxr766rmqWU1gC7ShF6h5+3CC/5m8Dueqb+oYHoP2bdiWv/P9WiviVKFvX/4qQ0wyB23gjo+1TuUjSPh84puFjuO8rH1J5/vDMWaPTh35+gB0fMunmrFNm+SqYbQOMg=="}, {"id": "00e3779b5d7e7b88605704796a2dbb10", "iv": "R7f1j0SSmU+5/npH", "ct": "GRBQEEtRtc1lUItZWnad2iRfC7MG+bwHbvEKDEOETA+v1H4ju870TGRS083/a9RV02nbqRbgMTSTkWP0pDy9Dw2i2SwohWEYekm3SoZqSawi5Sx3AGWvH/IWECH4J+fCd8Igm/gMgtSdc0eubK94rbuDmZGc2HPDgNvu94i8eoktBUB5jvRFNOfXjJI2sTy3eNkcSk6bM2ag01Wth8m3zyypYzQPmew="}, {"id": "df397eaba686d6dcb63f3c4374c65f36", "iv": "JFDOusvVYNfJUczp", "ct": "kBrKPk+GdZbF6JPPmqVw7LpZYaVx08/NV2cyzzW9UxHKtSGsTZJgnrZyQwCcQ8Raqqr+aKRe+GqsAMOc5nto0i7lJNJh+aofijGNiWiwnfZ3sUUepyA2+6GLRg3slyVRdizzNfmfar+6L9daBYKglMeYuzW17t0x0ETkxd4/kS1OllO85sVXC9iJewf1MwZnGVwLBRYPFV66c/L92mDtNIbUaSXBmw=="}, {"id": "bc4c8332cb16aa5acdfac60625782840", "iv": "BTAMFtmD+9JjUYLU", "ct": "mf3+0uIm+xdw4xmpcg2GJh1/PGgZE45t6MPo2sSzjHb2JlU4eypyO6DBBhm3fMDSMq1h812Fq5aJyQyk1UdBbshKHy/iqpw+q4YEv70QP+1Elosvf564gz6fW56S2No+7jWNDeGGqn0NRRR/CP7RNddcjptdyOE5h+OTmn0bMDZrbVxWNozdMoEXIrdgXnPop3rrByirlF5HW1OSr0ob7yfnOw84tg=="}, {"id": "cad19b2c39e1e534a40bdd0b6867d904", "iv": "LdB0cqsKyiy/MJKm", "ct": "wvLuYVNsVJ5cWCrnoYDh9p3WA6GS1CrYoKDkXmQpnHeNZex7Gh8QC23B/AbrvqsGObsE/g/h8tMeQ1c83FAGktGwHihaCzLrQuxDOTzT6kePiQqJ0H4HupqefXrrIUxb0Eu76H0ERTvkeUAKgj/hon2XCMRvvaBUM+/KKao006uL+jl3VeEmmbvUre+F4qWE2VdqWJKT2jlc2/rFsegixFkZ0/Iq"}, {"id": "22f4f2cb9d7fe05a0bfe354b1336c942", "iv": "Uwmby6bBxWcNvBtP", "ct": "CofrKB2x1GXpPwo2AuR90OF879r5hxgOfbmE4tDO1OMLadj5Fm59aH2SsLF+c60rrpc5bLuN3nJ2XcpPgAN6hPgQN1/KBrejtdFKA28MhhzHf+/p9ETpOvl1aDAh51Yzr+gnybbxw3zFHU1jFhFFKt8avl2jTvH3vqutvFhfvv1unMu2m5olQRmyxnoXGmtN838ZFHxs73lG"}, {"id": "624beaa72872b63d1e778f8160b03c3c", "iv": "dVwaAVBDIgYSenW5", "ct": "aXcAoEj6Q9GOfsxXa/Fqg7iSb7W7S/SXP2InV84dSx8GlZX/Uo81RJRvRzgUEJL1B4afDLVUO0kh1EKdLDYZMg64RxnyDSfVKQ27hPcUPgtdanv2sVRT49fAz4LdOLwmjFBjwtL+Y78VYQV1oiDbjy92Le7guVrC22I0sEB6Sxn8p90qUWsxYKfoCLJhcBu4yLo5nypN6jyHwLKdW1MVpf39WTx5Pg=="}, {"id": "18a29a9a4e86d3ca559fcea0821bd889", "iv": "f47axtoeKnksZ0vo", "ct": "B+2J3DFy+qFsM7T+vpU6D6fPztvI7n4mSV1Q91QjENboUmBC1hrmGsmdAU9j+/usOZ3lt2uugKxdrwU0Y3yWnutN+gtp3UQadMtI973yTfxFGG46N0fzaMwOwM6Bp1EFuL6Pusc1dmPsPaE8r6GuDrZUQrDY11XncBvHVmtsnWfQYZbDl9cErZAdE1swUGSpTyRLGYq+SS9jsp/SqK103UJ12SECnRU="}, {"id": "d77a62b56775b0505dc7fe0d2373a620", "iv": "nDtu3zeOwa36prhn", "ct": "GaS9vfvGsMmQ9pRLCYkxg8tDfd7y/8wfSpFSkxzLHj/zSas0lHG+dAnaCuZ9/sZQVi9yxfuC5QymgZrF6z7JKSVLInK3mDQHNprG10RxIn1bOP40e2Sq7v59lVKHUbyRAo2nzobGUjVN5HvbYCibQndETboRW4K1QMYWnp2JElXs1xoYtodxTrggFq6G3hvAPFCFT3v6DtgFbw=="}, {"id": "b2dff84143fd1b8bce0755a8db661dc4", "iv": "VWdLtU4MHPwehQA+", "ct": "ZsLh+ccOkXODMEa1EmqrKq4XEkooBKBX2SlwJb768CgrlEcXTIr4U97XCWx5fk4GlXOFzlahgxg7gj48MQyRhFST63v1vAF+b+Mjy+yAx6luZ2CrhwbaziBvsTg8I9kt/ZdZ5bpTwOvJ4GBp65XkXg8x17QOkWNZ+kUezFKtvs2ReSGXJaylwcxvXvIquMxirc0VVh544Rcti0oNa23UMaUbKwoVqw=="}, {"id": "2b42e5d7525399b09f1432064b2fc152", "iv": "D0beqFVFkYNUt0id", "ct": "GzYWSJbdvpAFqWyK/m2UxsATZHivapK7R7E35sSm4b+hs+xI5PpsIY7BBClql8kgfD7PqkB4go115K1IkEj9CyM2J+U0lzggS0bp7ZCA57q+0p5T4NUDh+V/JWli5lhQGi5hqrNIjH/93jeKR3tbpt8sBAycu//Gc+K6r8uDlEJa6o0JRJ6o6Z/Kl2pNvi5nMWoGrsVYTsOSb0UxGIDFSFACu5DBW54="}, {"id": "1a0fc1ab31d517e98cb15c302f9df867", "iv": "RgX7lvj16kcSzuY7", "ct": "QvYI/veqgohmhREO3kJW7KrZSGlJtZ0zsL6e0ZmUblVcvzbBgtDzbowYa2/70Xp9ZCHvuKCJS9WXo2YNS4nBmPvj+o2nJOY2v09UiHL583BqCLtWD/dVKl6Nn1BsISVSRhbEljzMwpv75/kQzQQuk84BraD2LZCGZTCdpe5Zq/lusMMRSVY70Njy9iwI8dqBWIX4oulYLg=="}]};
+
+const enc = new TextEncoder();
+const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const hex = u8 => [...u8].map(b => b.toString(16).padStart(2, '0')).join('');
+// Solo letras y números, sin distinguir mayúsculas/minúsculas ni espacios, guiones, etc.
+const norm = s => s.toUpperCase().replace(/[^A-Z0-9]/g, '');
+const fmt = x => x.toFixed(2);
+
+// Escala de 3 colores de Excel (mínimo / mediana / máximo del grupo)
+const RED = [248,105,107], YEL = [255,235,132], GRN = [99,190,123];
+const mix = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
+const css = c => `rgb(${c[0]},${c[1]},${c[2]})`;
+function scale(v, lo, mid, hi) {
+  if (hi <= lo) return css(YEL);
+  if (v <= lo) return css(RED);
+  if (v >= hi) return css(GRN);
+  if (v < mid) return css(mix(RED, YEL, (v - lo) / ((mid - lo) || 1)));
+  return css(mix(YEL, GRN, (v - mid) / ((hi - mid) || 1)));
+}
+
+async function lookup(carne) {
+  const key = await crypto.subtle.importKey('raw', enc.encode(norm(carne)), 'PBKDF2', false, ['deriveBits']);
+  const bits = new Uint8Array(await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt: b64(DATA.salt), iterations: DATA.iters, hash: 'SHA-256' }, key, 384));
+  const id = hex(bits.slice(0, 16));
+  const rec = DATA.students.find(s => s.id === id);
+  if (!rec) return null;
+  const aes = await crypto.subtle.importKey('raw', bits.slice(16), 'AES-GCM', false, ['decrypt']);
+  const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(rec.iv) }, aes, b64(rec.ct));
+  return JSON.parse(new TextDecoder().decode(plain));
+}
+
+function render(st) {
+  const comps = DATA.components;
+  const done = comps.filter(c => c.evaluated);
+  const maxEval = done.reduce((a, c) => a + c.max, 0);
+  const vals = st.v;
+  const hasData = done.some(c => (vals[c.id] || 0) !== 0);
+  let html = '';
+  if (!hasData) {
+    html += `<p>Aún no hay notas registradas para este carné.</p>`;
+    return html;
+  }
+  const total = done.reduce((a, c) => a + (vals[c.id] || 0), 0);
+  const diff = total - maxEval;
+  const sc = DATA.scale;
+  html += `<div class="hero" style="background:${scale(diff, sc.min, sc.mid, sc.max)}">
+      <div class="big">${fmt(total)} de ${maxEval} (${fmt(diff)})</div>
+      <div class="cap">Acumulado sobre el ${maxEval}% evaluado hasta el momento (entre paréntesis, puntos perdidos)</div>
+    </div>
+    <div class="bar"><i style="width:${maxEval}%"></i></div>
+    <div class="barcap">${maxEval}% del curso evaluado · ${100 - maxEval}% pendiente</div>
+    <table><thead><tr><th>Rubro</th><th class="n">Valor</th><th class="n">Obtenido</th></tr></thead><tbody>`;
+  let lastGroup = null;
+  for (const c of comps) {
+    if (c.group !== lastGroup) { html += `<tr class="grp"><td colspan="3">${esc(c.group)}</td></tr>`; lastGroup = c.group; }
+    const v = vals[c.id];
+    if (!c.evaluated || v == null) {
+      html += `<tr class="pend"><td>${esc(c.label)}</td><td class="n">${c.max}</td><td class="n">Pendiente</td></tr>`;
+      continue;
+    }
+    const det = (st.det && st.det[c.id]) ? `<span class="det">${st.det[c.id].map((x, i) => `#${i + 1}: ${fmt(x)}`).join(' · ')}</span>` : '';
+    html += `<tr><td>${esc(c.label)}${det}</td><td class="n">${c.max}</td>
+      <td class="n"><span class="chip" style="background:${scale(v / c.max, 0, 0.5, 1)}">${fmt(v)}</span></td></tr>`;
+  }
+  html += `</tbody></table>
+    <p class="foot">Información de carácter informativo. La nota oficial es la que se registra en el sistema institucional.${DATA.updated ? ' Actualizado: ' + esc(DATA.updated) + '.' : ''}</p>`;
+  return html;
+}
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+document.getElementById('title').textContent = DATA.title;
+document.getElementById('f').addEventListener('submit', async e => {
+  e.preventDefault();
+  const msg = document.getElementById('msg'), out = document.getElementById('out'), btn = document.getElementById('go');
+  msg.textContent = ''; out.innerHTML = ''; btn.disabled = true;
+  try {
+    const st = await lookup(document.getElementById('carne').value);
+    if (!st) msg.textContent = 'No se encontró ese carné. Verifíquelo e intente de nuevo.';
+    else out.innerHTML = render(st);
+  } catch (err) {
+    msg.textContent = 'No se pudo completar la consulta. Intente de nuevo.';
+  } finally { btn.disabled = false; }
+});
+</script>
+</body>
+</html>
